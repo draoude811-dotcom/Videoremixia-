@@ -260,3 +260,30 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\n\n⚠️  Traitement interrompu par l'utilisateur")
         sys.exit(130)
+
+import subprocess
+import uuid
+from pathlib import Path
+
+def process_video(input_path: str) -> str:
+    output_dir = Path("outputs")
+    output_dir.mkdir(exist_ok=True)
+
+    output_file = output_dir / f"video_{uuid.uuid4().hex}.mp4"
+
+    cmd = [
+        "ffmpeg",
+        "-i", input_path,
+        "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
+        "-c:v", "libx264",
+        "-preset", "medium",
+        "-crf", "23",
+        "-pix_fmt", "yuv420p",
+        "-c:a", "aac",
+        "-movflags", "+faststart",
+        "-y",
+        str(output_file)
+    ]
+
+    subprocess.run(cmd, check=True)
+    return f"/outputs/{output_file.name}"
