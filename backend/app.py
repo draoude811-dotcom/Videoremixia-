@@ -87,3 +87,64 @@ def health_check():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
+import os
+import uuid
+import tempfile
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
+from werkzeug.utils import secure_filename
+
+from video_processor import process_video
+
+app = Flask(__name__)
+CORS(app)
+
+app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024
+
+UPLOAD_FOLDER = tempfile.gettempdir()
+OUTPUT_FOLDER = "outputs"
+ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv', 'webm'}
+
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/upload', methods=['POST'])
+def upload_video():
+    if 'file' not in request.files:
+        return jsonify({'error': 'Aucun fichier'}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'error': 'Nom vide'}), 400
+
+    if not allowed_file(file.filename):
+        return jsonify({'error': 'Format non autorisé'}), 400
+
+    temp_path = os.path.join(
+        UPLOAD_FOLDER,
+        f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
+    )
+
+    file.save(temp_path)
+
+    try:
+        video_url = process_video(temp_path)
+        return jsonify({'video_url': video_url})
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
+@app.route('/outputs/<filename>')
+def serve_output(filename):
+    return send_from_directory(OUTPUT_FOLDER, filename)
+
+@app.route('/health')
+def health():
+    return jsonify({'status': 'ok'})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
