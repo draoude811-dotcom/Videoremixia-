@@ -130,3 +130,42 @@
         }
     });
 </script>
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Videoremixia</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>🎬 Videoremixia</h1>
+
+<p>Génère jusqu’à 30 vidéos par mois</p>
+
+<div class="pricing">
+  <div>
+    <h2>Basic</h2>
+    <p>10€ / mois<br>90€ / an</p>
+  </div>
+  <div>
+    <h2>Pro</h2>
+    <p>15€ / mois<br>135€ / an</p>
+  </div>
+</div>
+
+<input id="promo" placeholder="Code promo">
+<button onclick="applyPromo()">Appliquer</button>
+<p id="promoResult"></p>
+
+<hr>
+
+<input type="file" id="videoInput">
+<button onclick="upload()">Générer la vidéo</button>
+
+<video id="result" controls></video>
+
+<script src="script.js"></script>
+</body>
+</html>
